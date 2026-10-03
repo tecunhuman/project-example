@@ -1,0 +1,54 @@
+name: docker_builds
+
+on:
+  schedule:
+    - cron:  '0 0 1 * *'
+  workflow_dispatch:
+
+env:
+  VERSION: v1
+  REGISTRY: forge.lan:3000/tecunhuman
+  DOCKER_HOST: tcp://127.0.0.1:2375
+
+jobs:
+  build-and-push-linux-image:
+    name: Linux (Ubuntu)
+    runs-on: docker
+    container:
+      image: docker:cli
+    steps:
+      - name: Install node
+        run: apk add --no-cache nodejs
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Login to Forgejo Container Registry
+        run: echo ${{ secrets.REGISTRY_TOKEN }} | docker login forge.lan:3000 -u ${{ github.actor }} --password-stdin
+
+      - name: Build and push Docker image
+        run: |
+          docker build -t $REGISTRY/project-example-ubuntu:$VERSION -t $REGISTRY/project-example-ubuntu:latest platform/ubuntu
+          docker push $REGISTRY/project-example-ubuntu:$VERSION
+          docker push $REGISTRY/project-example-ubuntu:latest
+
+  build-and-push-windows-image:
+    name: Windows (MinGW)
+    runs-on: docker
+    container:
+      image: docker:cli
+    steps:
+      - name: Install node
+        run: apk add --no-cache nodejs
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Login to Forgejo Container Registry
+        run: echo ${{ secrets.REGISTRY_TOKEN }} | docker login forge.lan:3000 -u ${{ github.actor }} --password-stdin
+
+      - name: Build and push Docker image
+        run: |
+          docker build -t $REGISTRY/project-example-mingw:$VERSION -t $REGISTRY/project-example-mingw:latest platform/mingw
+          docker push $REGISTRY/project-example-mingw:$VERSION
+          docker push $REGISTRY/project-example-mingw:latest

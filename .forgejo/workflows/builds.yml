@@ -1,0 +1,47 @@
+name: builds
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  linux-build:
+    name: Linux/Ubuntu build
+    runs-on: docker
+    container:
+      image: forge.lan:3000/tecunhuman/project-example-ubuntu:v1
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.REGISTRY_TOKEN }}
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Build project-example
+        run: ./platform/ubuntu/build.sh
+
+      - name: Test project-example
+        run: ./build/linux/project-example | grep "hello from project-example"
+
+  windows-build:
+    name: Windows/MinGW build
+    runs-on: docker
+    container:
+      image: forge.lan:3000/tecunhuman/project-example-mingw:v1
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.REGISTRY_TOKEN }}
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Build project-example
+        run: ./platform/mingw/build.sh
+
+      - name: Check project-example
+        run: ls -la build/windows/project-example.exe
